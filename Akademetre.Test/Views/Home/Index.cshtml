@@ -1,0 +1,172 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<form action="/home/index" method="post" id="personForm">
+    <table>
+        <tr>
+            <td>İsim :</td>
+            <td><input type="text" id="name" /></td>
+        </tr>
+        <tr>
+            <td>Soyisim :</td>
+            <td> <input type="text" id="surname" /></td>
+        </tr>
+        <tr>
+            <td>Adres :</td>
+            <td><textarea rows="5" cols="30" id="address"></textarea></td>
+        </tr>
+        <tr>
+            <td>Email :</td>
+            <td><input type="email" id="email" /></td>
+        </tr>
+    </table>
+    <br />
+
+    <input type="submit" name="submit" />
+</form>
+<hr />
+<table id="test" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Adı</th>
+            <th>Soyad</th>
+            <th>Adresi</th>
+            <th>Emaili</th>
+        </tr>
+    </thead>
+    <tbody id="tableBody">
+    </tbody>
+</table>
+<input type="submit" value="Temizle" id="clear" />
+<input type="submit" value="Excel Olarak indir" id="excel" />
+@section Scripts{
+
+    <script type="text/javascript">
+        const form = document.getElementById("personForm");
+        const name = document.getElementById("name");
+        const surname = document.getElementById("surname");
+        const address = document.getElementById("address");
+        const email = document.getElementById("email");
+        const table = document.getElementById("tableBody");
+        const clear = document.getElementById("clear");
+        const excel = document.getElementById("excel");
+
+        eventListeners();
+
+        function eventListeners() {
+            form.addEventListener("submit", addPerson);
+            document.addEventListener("DOMContentLoaded", loadPeopleToTable);
+            clear.addEventListener("click", clearPeople);
+            excel.addEventListener("click", SaveOrder);
+        }
+        function clearPeople(e) {
+            if (confirm("Silmek istediğinize emin misiniz?")) {
+                table.innerHTML = "";
+            }
+            localStorage.removeItem("people");
+        }
+
+        function loadPeopleToTable() {
+            let people = getPeopleFromStorage();
+            people.forEach(function (person) {
+                addPersonToTable(person);
+            })
+
+        }
+
+        function SaveOrder() {
+
+            $(document).ready(function () {
+
+
+                let people = JSON.stringify(getPeopleFromStorage());
+                $.ajax({
+                    type: "GET",
+                    url: "@Url.Action("excel","home")",
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: { people : people},
+                    success: function (result) { console.log('Ok! It worked.'); },
+                    error: function (result) { console.log('Warning! It failed.'); }
+                });
+                console.log(JSON.stringify(people))
+            })
+
+
+                }
+
+        function addPerson(e) {
+
+            const newPerson = {
+                Name: name.value.trim(),
+                Surname: surname.value.trim(),
+                Address: address.value.trim(),
+                Email: email.value.trim()
+            };
+
+            if (newPerson.Name === "" || newPerson.Surname === "" || newPerson.Address === "" || newPerson.Email === "") {
+                showAlert("danger", "Lütfen tüm alanları doldurunuz.");
+
+            }
+            else {
+                addPersonToTable(newPerson);
+                addPersonToStorage(newPerson);
+            }
+
+            e.preventDefault();
+        }
+
+        function getPeopleFromStorage() {
+            let people;
+
+            if (localStorage.getItem("people") === null) {
+                people = [];
+            }
+            else {
+                people = JSON.parse(localStorage.getItem("people"));
+            }
+            return people;
+        };
+        function addPersonToStorage(newPerson) {
+            let people = getPeopleFromStorage();
+            people.push(newPerson);
+            localStorage.setItem("people", JSON.stringify(people));
+
+        };
+
+        function showAlert(type, message) {
+            const alert = document.createElement("div");
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+
+            form.appendChild(alert);
+            setTimeout(function () {
+                alert.remove();
+            }, 1000)
+
+        }
+
+        function addPersonToTable(newPerson) {
+
+            const tableRow = document.createElement("tr");
+
+            const tableName = document.createElement("td");
+            tableName.textContent = newPerson.Name;
+            const tableSurname = document.createElement("td");
+            tableSurname.textContent = newPerson.Surname;
+            const tableAddress = document.createElement("td");
+            tableAddress.textContent = newPerson.Address;
+            const tableEmail = document.createElement("td");
+            tableEmail.textContent = newPerson.Email;
+
+            tableRow.appendChild(tableName);
+            tableRow.appendChild(tableSurname);
+            tableRow.appendChild(tableAddress);
+            tableRow.appendChild(tableEmail);
+
+            table.appendChild(tableRow)
+        }
+
+
+    </script>
+}
