@@ -1,4 +1,4 @@
 # Akademetre.Test
 Akademetre C# Test projesi
 
-Projede Oluşturulan bilgilerin excel çıktısı projenin klasörüne kaydedilmektedir.
+Projede oluşturulan bilgilerin excel çıktısı projenin klasörüne kaydedilmektedir.
